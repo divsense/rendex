@@ -1,8 +1,6 @@
-import * as R from "ramda"
-
 export default function renderNode({id, context, model, templates, options}) {
 
-    const node = R.view( R.lensProp( id ), model );
+    const node = model.get( id );
 
     context = node.context || context;
 

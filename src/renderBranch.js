@@ -1,4 +1,3 @@
-import * as R from "ramda"
 import renderNode from "./renderNode.js"
 
 export default function renderBranch({id, node, context, model, templates, options}) {
@@ -23,7 +22,7 @@ export default function renderBranch({id, node, context, model, templates, optio
 
     branch.forEach( link => {
 		if( link.options ){
-			options = R.merge( options || {}, link.options );
+			options = Object.assign( options || {}, link.options );
 		}
         renderNode( {id:link.id, context, model, templates, options} );
     });

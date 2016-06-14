@@ -33,7 +33,5 @@
       "es2015"
     ]
   },
-  "dependencies": {
-    "ramda": "^0.21.0"
-  }
+  "dependencies": {}
 }

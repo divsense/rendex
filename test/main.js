@@ -34,9 +34,9 @@ test(t => {
 
 	}
 
-	let model = {
+	let model = new Map([
 
-		a:{
+		['a', {
 			text: 'A:',
 			context: 'main',
 			render:{
@@ -48,32 +48,31 @@ test(t => {
 			{id: 'b', options:{side:'left'}},
 			{id: 'c', options:{side:'right'}}
 			]
-		},
+		}],
 
-		b:{
+		['b', {
 			text: 'b',
 			render:{
 				main:{
 					template: 'mainX'
 				}
 			},
-		},
+		}],
 
-		c:{
+		['c', {
 			text: 'c',
 			render:{
 				main:{
 					template: 'mainX'
 				}
 			}
-		}
-	}
+		}]
+	]);
 
 	const templates = {
 		mainA,
 		mainX
 	}
-
 
 	renderNode( {id: 'a', model, templates} );
 
