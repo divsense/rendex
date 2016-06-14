@@ -1,0 +1,39 @@
+{
+  "name": "rendex",
+  "version": "0.0.1",
+  "description": "render :: Model -> DOM",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/divsense/rendex.git"
+  },
+  "keywords": [
+    "render",
+    "DOM"
+  ],
+  "author": "Divsense",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/divsense/rendex/issues"
+  },
+  "homepage": "https://github.com/divsense/rendex#readme",
+  "devDependencies": {
+    "ava": "^0.15.2"
+  },
+  "ava": {
+    "require": [
+      "babel-register"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "dependencies": {
+    "ramda": "^0.21.0"
+  }
+}
