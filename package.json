@@ -33,5 +33,7 @@
       "es2015"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "immutable": "^3.8.1"
+  }
 }

@@ -1,21 +1,20 @@
 import test from 'ava'
-import {renderNode, renderBranch} from "../index.js"
+import initModel from "../index.js"
 
 test(t => {
 
 	let Result = "";
 
-	const mainA = data => {
+	const mainA_ = data => {
 
-		let {id, node, context, options, model, templates} = data;
+		Result += `<div id='${ data.id }'>`;
 
-		Result += `<div id='${ id }'>`;
-
-		Result += '<p>' + node.text + '</p>';
+		Result += '<p>' + data.node.text + '</p>';
 
 		Result += '<ul>';
+	}
 
-		renderBranch( { id, node, context, model, templates, options } );
+	const _mainA = () => {
 
 		Result += '</ul>';
 
@@ -31,55 +30,55 @@ test(t => {
 
 		Result += '</li>';
 
-
 	}
 
-	let model = new Map([
+	let m = {
 
-		['a', {
+		'a': {
 			text: 'A:',
 			context: 'main',
 			render:{
 				main:{
-					template: 'mainA'
+					template: ['mainA_', '_mainA']
 				}
 			},
 			branch:[
 			{id: 'b', options:{side:'left'}},
 			{id: 'c', options:{side:'right'}}
 			]
-		}],
+		},
 
-		['b', {
+		'b': {
 			text: 'b',
 			render:{
 				main:{
-					template: 'mainX'
+					template: ['mainX']
 				}
 			},
-		}],
+		},
 
-		['c', {
+		'c': {
 			text: 'c',
 			render:{
 				main:{
-					template: 'mainX'
+					template: ['mainX']
 				}
 			}
-		}]
-	]);
+		}
+	};
 
 	const templates = {
-		mainA,
+		mainA_,_mainA,
 		mainX
 	}
 
-	renderNode( {id: 'a', model, templates} );
+	let model = initModel( m, templates, 'a' );
 
 	const sample = "<div id='a'><p>A:</p><ul><li class='left'>b</li><li class='right'>c</li></ul></div>";
 
-	t.is( sample, Result );
+	model.render();
 
+	t.is( sample, Result );
 
 })
 
