@@ -1,36 +1,21 @@
-var Immutable = require("immutable")
+var renderNode = function({$id, $context, $model, $templates, $options, $index}, $$template) {
 
-var renderNode = function({id, context, model, templates, options}) {
-
-    const node = model.get( id );
-
-    context = node.context || context;
-
-    const renderContext = node.render[ context ];
+    const $node = $model.get( $id );
+    $context = $node.context || $context;
+    const renderContext = $node.render[ $context ];
 
 	if( renderContext ){
-
-		var data = {id, node, context, model, templates, options};
-
-		const templateOpen = templates[ renderContext.template[0] ];
-
+		var data = {$id, $node, $context, $model, $templates, $options, $index};
+		const templateFunc = $$template || $templates[ renderContext.template ];
 		templateOpen.call( null, data);
-
-		if( renderContext.template[1] ){
-
-			renderBranch( data );
-
-			templates[ renderContext.template[1] ].call( null, data );
-		}
-
 	}
 }
 
-var renderBranch = function({id, node, context, model, templates, options}) {
+var renderBranch = function({$id, $node, $context, $model, $templates, $options}, $$template){
 
-    let branch = node.branch || [];
+    let branch = $node.branch || [];
 
-    const renderContext = node.render[ context ];
+    const renderContext = $node.render[ $context ];
 
     const branchContext = renderContext.branch || {};
 
@@ -46,34 +31,19 @@ var renderBranch = function({id, node, context, model, templates, options}) {
 		branch = branchContext.replace;
 	}
 
-    branch.forEach( link => {
-		if( link.options ){
-			options = Object.assign( options || {}, link.options );
+	if( branchContext.link ){
+		branch = $model.get( branchContext.link ).branch;
+	}
+
+    branch.forEach( (item, $index) => {
+		if( item.options ){
+			$options = Object.assign( $options || {}, item.options );
 		}
-		renderNode( {id:link.id, context, model, templates, options} );
+		var data = {$id:item.id, $context, $model, $templates, $options, $index};
+		renderNode( data, $$template );
     });
 }
 
-module.exports = function(model_, templates_, id_){
+exports.renderNode;
+exports.renderBranch;
 
-	var model = Immutable.Map( model_ );
-	var templates = templates_;
-	var id = id_;
-
-	function render( ){
-		renderNode( {id, model, templates} );
-	}
-
-	function update( cb, isRendering ){
-		model = cb( model );
-		if( isRendering ){
-			render();
-		}
-	}
-
-	return {
-		render,
-		update,
-		toJS: function(){ return model.toObject() }
-	}
-}
