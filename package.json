@@ -1,6 +1,6 @@
 {
   "name": "rendex",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "render :: Model -> DOM",
   "main": "index.js",
   "scripts": {
