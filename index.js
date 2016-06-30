@@ -44,6 +44,22 @@ var renderBranch = function({$id, $node, $context, $model, $templates, $options}
     });
 }
 
+var render = function(id,model,templates,context){
+
+	var node = model.get(id);
+
+	var data = {
+		$id:id,
+		$node: node,
+		$model: model,
+		$templates: templates,
+		$context: context
+	};
+
+	renderNode( data );
+
+}
+
 exports.renderNode = renderNode;
 exports.renderBranch = renderBranch;
 
