@@ -46,7 +46,7 @@ var renderBranch = function({$id, $node, $context, $model, $templates, $options}
 
 var render = function(d){
 
-	var node = model.get(d.id);
+	var node = d.model.get(d.id);
 
 	var data = {
 		$id:d.id,
@@ -62,4 +62,5 @@ var render = function(d){
 
 exports.renderNode = renderNode;
 exports.renderBranch = renderBranch;
+exports.render = render;
 
