@@ -7,7 +7,7 @@ var renderNode = function({$id, $context, $model, $templates, $options, $index})
 	if( renderContext ){
 		var data = {$id, $node, $context, $model, $templates, $options, $index};
 		const templateFunc = $templates[ renderContext.template ];
-		templateOpen.call( null, data);
+		templateFunc.call( null, data);
 	}
 }
 
