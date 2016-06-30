@@ -44,16 +44,16 @@ var renderBranch = function({$id, $node, $context, $model, $templates, $options}
     });
 }
 
-var render = function(id,model,templates,context){
+var render = function(d){
 
-	var node = model.get(id);
+	var node = model.get(d.id);
 
 	var data = {
-		$id:id,
+		$id:d.id,
 		$node: node,
-		$model: model,
-		$templates: templates,
-		$context: context
+		$model: d.model,
+		$templates: d.templates,
+		$context: d.context
 	};
 
 	renderNode( data );
