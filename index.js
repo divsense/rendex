@@ -1,4 +1,4 @@
-var renderNode = function({$id, $context, $model, $templates, $options, $index}, $$template) {
+var renderNode = function({$id, $context, $model, $templates, $options, $index}) {
 
     const $node = $model.get( $id );
     $context = $node.context || $context;
@@ -6,12 +6,12 @@ var renderNode = function({$id, $context, $model, $templates, $options, $index},
 
 	if( renderContext ){
 		var data = {$id, $node, $context, $model, $templates, $options, $index};
-		const templateFunc = $$template || $templates[ renderContext.template ];
+		const templateFunc = $templates[ renderContext.template ];
 		templateOpen.call( null, data);
 	}
 }
 
-var renderBranch = function({$id, $node, $context, $model, $templates, $options}, $$template){
+var renderBranch = function({$id, $node, $context, $model, $templates, $options}){
 
     let branch = $node.branch || [];
 
@@ -40,10 +40,10 @@ var renderBranch = function({$id, $node, $context, $model, $templates, $options}
 			$options = Object.assign( $options || {}, item.options );
 		}
 		var data = {$id:item.id, $context, $model, $templates, $options, $index};
-		renderNode( data, $$template );
+		renderNode( data );
     });
 }
 
-exports.renderNode;
-exports.renderBranch;
+exports.renderNode = renderNode;
+exports.renderBranch = renderBranch;
 
