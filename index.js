@@ -7,6 +7,9 @@ var renderNode = function({$id, $context, $model, $templates, $options, $index})
 	if( renderContext ){
 		var data = {$id, $node, $context, $model, $templates, $options, $index};
 		const templateFunc = $templates[ renderContext.template ];
+        if(!templateFunc){
+            throw("Undefined template: " + renderContext.template );
+        }
 		templateFunc.call( null, data);
 	}
 }
@@ -38,6 +41,9 @@ var renderBranch = function({$id, $node, $context, $model, $templates, $options}
     branch.forEach( (item, $index) => {
 		if( item.options ){
 			$options = Object.assign( $options || {}, item.options );
+		}
+		if( item.context ){
+			$context = item.context;
 		}
 		var data = {$id:item.id, $context, $model, $templates, $options, $index};
 		renderNode( data );
