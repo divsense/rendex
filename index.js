@@ -1,53 +1,97 @@
-var renderNode = function({$id, $context, $model, $templates, $options, $index}) {
+'use strict';
 
-    const $node = $model.get( $id );
+var renderNode = function(data){
+
+    var $id        = data.$id;
+    var $context   = data.$context;
+    var $model     = data.$model;
+    var $templates = data.$templates;
+    var $options   = data.$options;
+    var $index     = data.$index;
+
+    var $node = $model.get( $id );
     $context = $node.context || $context;
-    const renderContext = $node.render[ $context ];
 
-	if( renderContext ){
-		var data = {$id, $node, $context, $model, $templates, $options, $index};
-		const templateFunc = $templates[ renderContext.template ];
-        if(!templateFunc){
-            throw("Undefined template: " + renderContext.template );
+    if( $node.render ){
+
+        var ctx = ($node.render.context && $node.render.context[$context]) ?
+            $node.render.context[$context] : $node.render;
+
+        if( ctx.options ){
+            $options = Object.assign( $options || {}, ctx.options );
         }
-		templateFunc.call( null, data);
-	}
+
+        if( !ctx.template ){
+            throw("Undefined template for context '" + $context + "' in '" + $id + "'" );
+        }
+
+        var templateFunc = $templates[ ctx.template ];
+
+        if(!templateFunc){
+            throw("Template '" + ctx.template + "' not found" );
+        }
+
+		templateFunc.call( null, {
+            $id:        $id,
+            $node:      $node,
+            $context:   $context,
+            $model:     $model,
+            $templates: $templates,
+            $options:   $options,
+            $index:     $index
+        });
+    }
 }
 
-var renderBranch = function({$id, $node, $context, $model, $templates, $options}){
+var renderBranch = function(data){
 
-    let branch = $node.branch || [];
+    var $id        = data.$id;
+    var $node      = data.$node;
+    var $context   = data.$context;
+    var $model     = data.$model;
+    var $templates = data.$templates;
+    var $options   = data.$options;
+    var $branchname    = data.$branchname;
 
-    const renderContext = $node.render[ $context ];
+    if( !$node.branch ){
+        return;
+    }
 
-    const branchContext = renderContext.branch || {};
+    items( $id, $node.branch, $branchname ).forEach( (item, index) => {
 
-	if( branchContext.append ){
-		branch = branch.concat( branchContext.append );
-	}
-
-	if( branchContext.prepend ){
-		branch = branchContext.prepend.concat( branch );
-	}
-
-	if( branchContext.replace ){
-		branch = branchContext.replace;
-	}
-
-	if( branchContext.link ){
-		branch = $model.get( branchContext.link ).branch;
-	}
-
-    branch.forEach( (item, $index) => {
 		if( item.options ){
 			$options = Object.assign( $options || {}, item.options );
 		}
-		if( item.context ){
-			$context = item.context;
-		}
-		var data = {$id:item.id, $context, $model, $templates, $options, $index};
-		renderNode( data );
+		
+		renderNode({
+            $id:        item.id,
+            $context:   item.context || $context,
+            $model:     $model,
+            $templates: $templates,
+            $options:   $options,
+            $index:     index
+        });
+
     });
+
+    function items( id, x, branchName ){
+
+        if( typeof x === 'string' ){
+            return [{id: x}];
+        }
+        else if( Array.isArray( x ) ){
+            return [].concat.apply([],(x.map(function(e){return items(id,e)})));
+        }
+        else if( branchName ){
+            if( !x[ branchName ] ){
+                throw("Branch '" + branchName + "' not found in '" + id + "'" );
+            }
+            return items( id, x[ branchName ] );
+        }
+        else{
+            return [x];
+        }
+    }
 }
 
 var render = function(d){
