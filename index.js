@@ -12,7 +12,7 @@ var _path = function(path, obj){
 			return obj[ path[0] ];
 		}
 		var prop = path.shift();
-		return pathEq( path, obj[prop] );
+		return _path( path, obj[prop] );
 	}
 
 	throw("Invalid 'path' property");
