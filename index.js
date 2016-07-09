@@ -97,7 +97,7 @@ var renderBranch = function(data, filter){
 
         $context = item.context || $context;
 		
-		enderNode({
+		renderNode({
             $id:        item.id,
             $context:   $context,
             $model:     $model,
