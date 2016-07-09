@@ -1,5 +1,29 @@
 'use strict';
 
+var _getContext = function(node,context){
+    return (node.render.context && node.render.context[context]) ?
+            node.render.context[context] : node.render;
+}
+
+var _path = function(path, obj){
+	if( Array.isArray(path) && path.length > 0 ){
+
+		if( path.length === 1 ){
+			return obj[ path[0] ];
+		}
+		var prop = path.shift();
+		return pathEq( path, obj[prop] );
+	}
+
+	throw("Invalid 'path' property");
+}
+
+var _pathEq = function(path, value){
+	return function(obj){
+		return _path( path, obj ) === value;
+	}
+}
+
 var renderNode = function(data){
 
     var $id        = data.$id;
@@ -14,8 +38,7 @@ var renderNode = function(data){
 
     if( $node.render ){
 
-        var ctx = ($node.render.context && $node.render.context[$context]) ?
-            $node.render.context[$context] : $node.render;
+        var ctx = _getContext($node, $context);
 
         if( ctx.options ){
             $options = Object.assign( $options || {}, ctx.options );
@@ -31,7 +54,7 @@ var renderNode = function(data){
             throw("Template '" + ctx.template + "' not found" );
         }
 
-		templateFunc.call( null, {
+        templateFunc.call( null, {
             $id:        $id,
             $node:      $node,
             $context:   $context,
@@ -43,7 +66,50 @@ var renderNode = function(data){
     }
 }
 
-var renderBranch = function(data){
+var renderBranch = function(data, filter){
+
+    var $id        = data.$id;
+    var $node      = data.$node;
+    var $context   = data.$context;
+    var $model     = data.$model;
+    var $templates = data.$templates;
+    var $options   = data.$options;
+
+    if( !$node.branch ){
+        return;
+    }
+
+    var bx = $node.branch;
+
+    var ctx = _getContext($node, $context);
+
+    var filter = ctx.branch && ctx.branch.filter;
+
+    if( filter ){
+        bx = bx.filter(_pathEq(filter.path, filter.value));
+    }
+
+    bx.forEach( (item, index) => {
+
+		if( item.options ){
+			$options = Object.assign( $options || {}, item.options );
+		}
+
+        $context = item.context || $context;
+		
+		enderNode({
+            $id:        item.id,
+            $context:   $context,
+            $model:     $model,
+            $templates: $templates,
+            $options:   $options,
+            $index:     index
+        });
+
+    });
+}
+
+var renderSection = function(data, start, end){
 
     var $id        = data.$id;
     var $node      = data.$node;
@@ -57,41 +123,24 @@ var renderBranch = function(data){
         return;
     }
 
-    items( $id, $node.branch, $branchname ).forEach( (item, index) => {
+    for( var i = start; i < end; i++ ){
 
-		if( item.options ){
-			$options = Object.assign( $options || {}, item.options );
-		}
-		
+        var item = $node.branch[ i ];
+
+        if( !item ){
+            break;
+        }
+
 		renderNode({
             $id:        item.id,
             $context:   item.context || $context,
             $model:     $model,
             $templates: $templates,
             $options:   $options,
-            $index:     index
+            $index:     i
         });
-
-    });
-
-    function items( id, x, branchName ){
-
-        if( typeof x === 'string' ){
-            return [{id: x}];
-        }
-        else if( Array.isArray( x ) ){
-            return [].concat.apply([],(x.map(function(e){return items(id,e)})));
-        }
-        else if( branchName ){
-            if( !x[ branchName ] ){
-                throw("Branch '" + branchName + "' not found in '" + id + "'" );
-            }
-            return items( id, x[ branchName ] );
-        }
-        else{
-            return [x];
-        }
     }
+
 }
 
 var render = function(d){
@@ -99,11 +148,11 @@ var render = function(d){
 	var node = d.model.get(d.id);
 
 	var data = {
-		$id:d.id,
-		$node: node,
-		$model: d.model,
+		$id:        d.id,
+		$node:      node,
+		$model:     d.model,
 		$templates: d.templates,
-		$context: d.context
+		$context:   d.context
 	};
 
 	renderNode( data );
@@ -112,5 +161,6 @@ var render = function(d){
 
 exports.renderNode = renderNode;
 exports.renderBranch = renderBranch;
+exports.renderSection = renderSection;
 exports.render = render;
 
