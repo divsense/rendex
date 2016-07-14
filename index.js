@@ -6,22 +6,20 @@ var _getContext = function(node,context){
 }
 
 var _path = function(path, obj){
-	if( Array.isArray(path) && path.length > 0 ){
-
-		if( path.length === 1 ){
-			return obj[ path[0] ];
-		}
-		var prop = path.shift();
-		return _path( path, obj[prop] );
-	}
-
-	throw("Invalid 'path' property");
+    if( path.length === 1 ){
+        return obj[ path[0] ];
+    }
+    var prop = path.shift();
+    return _path( path, obj[prop] );
 }
 
 var _pathEq = function(path, value){
-	return function(obj){
-		return _path( path, obj ) === value;
-	}
+    return function(obj){
+        if( Array.isArray(path) && path.length > 0 ){
+            return _path( path.slice(), obj ) === value;
+        }
+        throw("Invalid 'path' property");
+    }
 }
 
 var renderNode = function(data){
