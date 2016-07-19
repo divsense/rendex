@@ -81,10 +81,10 @@ var renderBranch = function(data, filter){
 
     var ctx = _getContext($node, $context);
 
-    var filter = ctx.branch && ctx.branch.filter;
+    var show = ctx.branch && ctx.branch.show;
 
-    if( filter ){
-        bx = bx.filter(_pathEq(filter.path, filter.value));
+    if( show ){
+        bx = bx.filter(_pathEq(show.path, show.value));
     }
 
     bx.forEach( (item, index) => {
