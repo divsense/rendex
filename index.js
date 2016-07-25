@@ -64,7 +64,7 @@ var renderNode = function(data){
     }
 }
 
-var renderBranch = function(data, filter){
+var renderBranch = function(data){
 
     var $id        = data.$id;
     var $node      = data.$node;
@@ -128,6 +128,10 @@ var renderSection = function(data, start, end){
         if( !item ){
             break;
         }
+
+		if( item.options ){
+			$options = Object.assign( $options || {}, item.options );
+		}
 
 		renderNode({
             $id:        item.id,
