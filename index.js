@@ -22,6 +22,10 @@ var _pathEq = function(path, value){
     }
 }
 
+var _extend = function (obj, src) {
+      return Object.assign({}, obj, src );
+}
+
 var renderNode = function(data){
 
     var $id        = data.$id;
@@ -30,23 +34,41 @@ var renderNode = function(data){
     var $templates = data.$templates;
     var $options   = data.$options;
     var $index     = data.$index;
+    var $template  = data.$template;
 
     var $node = $model.get( $id );
     $context = $node.context || $context;
 
-    if( $node.render ){
+    var templateFunc;
 
-        var ctx = _getContext($node, $context);
+    if( $node.render || $template ){
 
-        if( ctx.options ){
-            $options = Object.assign( $options || {}, ctx.options );
+        var tmpl;
+
+        if( $node.render ){
+
+            if( $node.render.options ){
+                $options = _extend( $options, $node.render.options );
+            }
+
+            var ctx = _getContext($node, $context);
+
+            if( ctx.options ){
+                $options = _extend( $options, ctx.options );
+            }
+
+            if( !ctx.template ){
+                throw("Undefined template for context '" + $context + "' in '" + $id + "'" );
+            }
+
+            tmpl = ctx.template;
+
+        }
+        else{
+            tmpl = $template;
         }
 
-        if( !ctx.template ){
-            throw("Undefined template for context '" + $context + "' in '" + $id + "'" );
-        }
-
-        var templateFunc = $templates[ ctx.template ];
+        templateFunc = $templates[ tmpl ];
 
         if(!templateFunc){
             throw("Template '" + ctx.template + "' not found" );
@@ -62,6 +84,7 @@ var renderNode = function(data){
             $index:     $index
         });
     }
+
 }
 
 var renderBranch = function(data){
@@ -72,25 +95,33 @@ var renderBranch = function(data){
     var $model     = data.$model;
     var $templates = data.$templates;
     var $options   = data.$options;
+    var $branchname    = data.$branchname;
+    var $template;
 
     if( !$node.branch ){
         return;
     }
 
-    var bx = $node.branch;
+    var bx = Array.isArray($node.branch) ? $node.branch : $node.branch[ $branchname ];
 
     var ctx = _getContext($node, $context);
 
-    var show = ctx.branch && ctx.branch.show;
+    if( ctx.branch ){
 
-    if( show ){
-        bx = bx.filter(_pathEq(show.path, show.value));
+        var show = ctx.branch.show;
+
+        if( show && ( !show.name || show.name === $branchname) ){
+            bx = bx.filter(_pathEq(show.path, show.value));
+        }
+
+        $template = ctx.branch.template;
+
     }
 
     bx.forEach( (item, index) => {
 
 		if( item.options ){
-			$options = Object.assign( $options || {}, item.options );
+			$options = _extend( $options, item.options );
 		}
 
         $context = item.context || $context;
@@ -101,6 +132,7 @@ var renderBranch = function(data){
             $model:     $model,
             $templates: $templates,
             $options:   $options,
+            $template:  $template,
             $index:     index
         });
 
@@ -116,21 +148,38 @@ var renderSection = function(data, start, end){
     var $templates = data.$templates;
     var $options   = data.$options;
     var $branchname    = data.$branchname;
+    var $template;
 
     if( !$node.branch ){
         return;
     }
 
+    var ctx = _getContext($node, $context);
+
+    var bx = Array.isArray($node.branch) ? $node.branch : $node.branch[ $branchname ];
+
+    if( ctx.branch ){
+
+        var show = ctx.branch.show;
+
+        if( show && ( !show.name || show.name === $branchname) ){
+            bx = bx.filter(_pathEq(show.path, show.value));
+        }
+
+        $template = ctx.branch.template;
+
+    }
+
     for( var i = start; i < end; i++ ){
 
-        var item = $node.branch[ i ];
+        var item = bx[ i ];
 
         if( !item ){
             break;
         }
 
 		if( item.options ){
-			$options = Object.assign( $options || {}, item.options );
+			$options = _extend( $options, item.options );
 		}
 
 		renderNode({
@@ -139,6 +188,7 @@ var renderSection = function(data, start, end){
             $model:     $model,
             $templates: $templates,
             $options:   $options,
+            $template:  $template,
             $index:     i
         });
     }
@@ -154,7 +204,9 @@ var render = function(d){
 		$node:      node,
 		$model:     d.model,
 		$templates: d.templates,
-		$context:   d.context
+		$context:   d.context,
+        $options:   {}
+
 	};
 
 	renderNode( data );
