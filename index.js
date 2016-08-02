@@ -26,6 +26,17 @@ var _extend = function (obj, src) {
       return Object.assign({}, obj, src );
 }
 
+var renderTemplate = function(tmpl, data){
+
+    var templateFunc = data.$templates[ tmpl ];
+
+	if(!templateFunc){
+		throw("Template '" + tmpl + "' not found" );
+	}
+
+	templateFunc.call( null, data );
+}
+
 var renderNode = function(data){
 
     var $id        = data.$id;
@@ -35,6 +46,8 @@ var renderNode = function(data){
     var $options   = data.$options;
     var $index     = data.$index;
     var $template  = data.$template;
+    var $parent    = data.$parent;
+    var $siblings  = data.$siblings;
 
     var $node = $model.get( $id );
     $context = $node.context || $context;
@@ -68,21 +81,17 @@ var renderNode = function(data){
             tmpl = $template;
         }
 
-        templateFunc = $templates[ tmpl ];
-
-        if(!templateFunc){
-            throw("Template '" + ctx.template + "' not found" );
-        }
-
-        templateFunc.call( null, {
+		renderTemplate( tmpl, {
             $id:        $id,
             $node:      $node,
             $context:   $context,
             $model:     $model,
             $templates: $templates,
             $options:   $options,
+			$parent:    $parent,
+            $siblings:  $siblings,
             $index:     $index
-        });
+		});
     }
 
 }
@@ -133,6 +142,8 @@ var renderBranch = function(data){
             $templates: $templates,
             $options:   $options,
             $template:  $template,
+			$parent:    $node,
+			$siblings:  bx,
             $index:     index
         });
 
@@ -189,6 +200,8 @@ var renderSection = function(data, start, end){
             $templates: $templates,
             $options:   $options,
             $template:  $template,
+			$parent:    $node,
+			$siblings:  bx,
             $index:     i
         });
     }
@@ -205,6 +218,8 @@ var render = function(d){
 		$model:     d.model,
 		$templates: d.templates,
 		$context:   d.context,
+		$parent:    null,
+		$siblings:  [],
         $options:   {}
 
 	};
@@ -213,6 +228,7 @@ var render = function(d){
 
 }
 
+exports.renderTemplate = renderTemplate;
 exports.renderNode = renderNode;
 exports.renderBranch = renderBranch;
 exports.renderSection = renderSection;
