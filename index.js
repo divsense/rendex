@@ -42,18 +42,11 @@ var _nodeContent = function(m,a){
 	return m && m[ a ] 
 }
 
-var _extendRuntimeOptions = function(obj, src, model, func){
+var _extendRuntimeRefOptions = function(obj, src, model){
 
 	return src.reduce( function(m,a){
 
-		if( a.func ){
-			var fn = func[ a.func ];
-			if( fn ){
-				return _extend( m, _makeOption(a.name, fn()));
-			}
-			throw("Runtime options error. Function '" + a.func +"' not found");
-		}
-		else if( a.id ){
+		if( a.id ){
 			var node = model.get( a.id );
 			if( node ){
 				if( a.path ){
@@ -65,6 +58,24 @@ var _extendRuntimeOptions = function(obj, src, model, func){
 			}
 			throw("Runtime options error. Node '" + a.id +"' not found");
 		}
+        return m;
+
+	}, obj);
+
+}
+
+var _extendRuntimeFuncOptions = function(obj, src, data, func){
+
+	return src.reduce( function(m,a){
+
+		if( a.func ){
+			var fn = func[ a.func ];
+			if( fn ){
+				return _extend( m, _makeOption(a.name, fn.call(null, data, a.params)) );
+			}
+			throw("Runtime options error. Function '" + a.func +"' not found");
+		}
+        return m;
 
 	}, obj);
 
@@ -107,7 +118,8 @@ var renderNode = function(data, template){
             }
 
             if( $node.render.runtime && $node.render.runtime.options ){
-                $options = _extendRuntimeOptions( $options, $node.render.runtime.options, $model, $functions );
+                $options = _extendRuntimeRefOptions( $options, $node.render.runtime.options, $model );
+                $options = _extendRuntimeFuncOptions( $options, $node.render.runtime.options, {$id, $model}, $functions  );
             }
 
             var ctx = _getContext($node, $context);
@@ -117,7 +129,8 @@ var renderNode = function(data, template){
             }
 
             if( ctx.runtime && ctx.runtime.options ){
-                $options = _extendRuntimeOptions( $options, ctx.runtime.options, $model, $functions );
+                $options = _extendRuntimeRefOptions( $options, ctx.runtime.options, $model );
+                $options = _extendRuntimeFuncOptions( $options, ctx.runtime.options, {$id, $model}, $functions  );
             }
 
             tmpl = ctx.template;
@@ -129,7 +142,8 @@ var renderNode = function(data, template){
 			throw("Undefined template for context '" + $context + "' in '" + $id + "'" );
 		}
 
-		renderTemplate({
+		var _data = {
+
             $id:        $id,
             $node:      $node,
             $context:   $context,
@@ -140,7 +154,10 @@ var renderNode = function(data, template){
 			$parent:    $parent,
             $siblings:  $siblings,
             $index:     $index
-		}, tmpl );
+
+        };
+
+		renderTemplate( _data, tmpl );
     }
 
 }
@@ -198,7 +215,8 @@ var renderBranch = function(data, branchname, range, filter){
 		}
 
 		if( branch.runtime && branch.runtime.options ){
-			$options = _extendRuntimeOptions( $options, branch.runtime.options, $model, $functions );
+			$options = _extendRuntimeRefOptions( $options, branch.runtime.options, $model );
+            $options = _extendRuntimeFuncOptions( $options, branch.runtime.options, {$id, $model}, $functions  );
 		}
 
         template = branch.template;
@@ -208,23 +226,26 @@ var renderBranch = function(data, branchname, range, filter){
 		
 		if( !range || (index >= range[0] && index < range[1]) ){
 
+            var _options = $options;
+
 			if( item.options ){
-				$options = _extend( $options, item.options );
+				_options = _extend( $options, item.options );
 			}
 
 			if( item.runtime && item.runtime.options ){
-				$options = _extendRuntimeOptions( $options, item.runtime.options, $model, $functions );
+				_options = _extendRuntimeRefOptions( $options, item.runtime.options, $model );
+                _options = _extendRuntimeFuncOptions( $options, item.runtime.options, {$id, $model}, $functions  );
 			}
 
-			$context = item.context || $context;
+			var _context = item.context || $context;
 
 			var _data = {
 				$id:        item.id,
-				$context:   $context,
+				$context:   _context,
 				$model:     $model,
 				$templates: $templates,
 				$functions: $functions,
-				$options:   $options,
+				$options:   _options,
 				$parent:    $node,
 				$siblings:  bx,
 				$index:     index
