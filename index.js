@@ -16,7 +16,8 @@ var _path = function(path, obj){
 var _pathEq = function(path, value){
     return function(obj){
         if( Array.isArray(path) && path.length > 0 ){
-            return _path( path.slice(), obj ) === value;
+            var pval = _path( path.slice(), obj );
+			return typeof value === 'boolean' ? !!pval === value : pval === value;
         }
         throw("Invalid 'path' property");
     }
