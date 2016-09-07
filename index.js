@@ -120,7 +120,7 @@ var renderNode = function(data, template){
 
             if( $node.render.runtime && $node.render.runtime.options ){
                 $options = _extendRuntimeRefOptions( $options, $node.render.runtime.options, $model );
-                $options = _extendRuntimeFuncOptions( $options, $node.render.runtime.options, {$id, $model}, $functions  );
+                $options = _extendRuntimeFuncOptions( $options, $node.render.runtime.options, {$id,$model,$options,$index,$parent,$siblings}, $functions  );
             }
 
             var ctx = _getContext($node, $context);
@@ -131,7 +131,7 @@ var renderNode = function(data, template){
 
             if( ctx.runtime && ctx.runtime.options ){
                 $options = _extendRuntimeRefOptions( $options, ctx.runtime.options, $model );
-                $options = _extendRuntimeFuncOptions( $options, ctx.runtime.options, {$id, $model}, $functions  );
+                $options = _extendRuntimeFuncOptions( $options, ctx.runtime.options, {$id,$model,$options,$index,$parent,$siblings}, $functions  );
             }
 
             tmpl = ctx.template;
@@ -217,7 +217,7 @@ var renderBranch = function(data, branchname, range, filter){
 
 		if( branch.runtime && branch.runtime.options ){
 			$options = _extendRuntimeRefOptions( $options, branch.runtime.options, $model );
-            $options = _extendRuntimeFuncOptions( $options, branch.runtime.options, {$id, $model}, $functions  );
+            $options = _extendRuntimeFuncOptions( $options, branch.runtime.options, {$id,$model,$options,$index,$parent,$siblings}, $functions  );
 		}
 
         template = branch.template;
@@ -235,7 +235,7 @@ var renderBranch = function(data, branchname, range, filter){
 
 			if( item.runtime && item.runtime.options ){
 				_options = _extendRuntimeRefOptions( $options, item.runtime.options, $model );
-                _options = _extendRuntimeFuncOptions( $options, item.runtime.options, {$id, $model}, $functions  );
+                _options = _extendRuntimeFuncOptions( $options, item.runtime.options, {$id,$model,$options,$index,$parent,$siblings}, $functions  );
 			}
 
 			var _context = item.context || $context;
