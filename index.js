@@ -17,7 +17,7 @@ var _pathEq = function(path, value){
     return function(obj){
         if( Array.isArray(path) && path.length > 0 ){
             var pval = _path( path.slice(), obj );
-			return (typeof pval === undefined || pval === value);
+			return (typeof pval === 'undefined' || pval === value);
         }
         throw("Invalid 'path' property");
     }
@@ -181,6 +181,10 @@ var renderBranch = function(data, branchname, range, filter){
     }
 
     var bx = Array.isArray($node.branch) ? $node.branch : $node.branch[ branchname ];
+
+    if( !bx ){
+        return;
+    }
 
     var ctx = _getContext($node, $context);
 
