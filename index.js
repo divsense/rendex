@@ -95,71 +95,68 @@ var renderTemplate = function(data, tmpl){
 
 var renderNode = function(data, template){
 
-    var $id        = data.$id;
-    var $context   = data.$context;
-    var $model     = data.$model;
-    var $templates = data.$templates;
-    var $options   = data.$options;
-    var $index     = data.$index;
-    var $parent    = data.$parent;
-    var $siblings  = data.$siblings;
-    var $functions  = data.$functions;
+	var $id        = data.$id;
+	var $context   = data.$context;
+	var $model     = data.$model;
+	var $templates = data.$templates;
+	var $options   = data.$options;
+	var $index     = data.$index;
+	var $parent    = data.$parent;
+	var $siblings  = data.$siblings;
+	var $functions  = data.$functions;
 
-    var $node = $model.get( $id );
-    $context = $node.context || $context;
+	var $node = $model.get( $id );
+	$context = $node.context || $context;
 
-    if( $node.render || template ){
+	var tmpl = template;
 
-        var tmpl;
+	if( $node.render ) {
 
-        if( $node.render ) {
-
-            if( $node.render.options ){
-                $options = _extend( $options, $node.render.options );
-            }
-
-            if( $node.render.runtime && $node.render.runtime.options ){
-                $options = _extendRuntimeRefOptions( $options, $node.render.runtime.options, $model );
-                $options = _extendRuntimeFuncOptions( $options, $node.render.runtime.options, {$id,$model,$index,$parent,$siblings}, $functions  );
-            }
-
-            var ctx = _getContext($node, $context);
-
-            if( ctx.options ){
-                $options = _extend( $options, ctx.options );
-            }
-
-            if( ctx.runtime && ctx.runtime.options ){
-                $options = _extendRuntimeRefOptions( $options, ctx.runtime.options, $model );
-                $options = _extendRuntimeFuncOptions( $options, ctx.runtime.options, {$id,$model,$index,$parent,$siblings}, $functions  );
-            }
-
-            tmpl = ctx.template;
-        }
-
-		tmpl = template || tmpl;
-
-		if( !tmpl ){
-			throw("Undefined template for context '" + $context + "' in '" + $id + "'" );
+		if( $node.render.options ){
+			$options = _extend( $options, $node.render.options );
 		}
 
-		var _data = {
+		if( $node.render.runtime && $node.render.runtime.options ){
+			$options = _extendRuntimeRefOptions( $options, $node.render.runtime.options, $model );
+			$options = _extendRuntimeFuncOptions( $options, $node.render.runtime.options, {$id,$model,$index,$parent,$siblings}, $functions  );
+		}
 
-            $id:        $id,
-            $node:      $node,
-            $context:   $context,
-            $model:     $model,
-            $templates: $templates,
-			$functions: $functions,
-            $options:   $options,
-			$parent:    $parent,
-            $siblings:  $siblings,
-            $index:     $index
+		var ctx = _getContext($node, $context);
 
-        };
+		if( ctx.options ){
+			$options = _extend( $options, ctx.options );
+		}
 
-		renderTemplate( _data, tmpl );
-    }
+		if( ctx.runtime && ctx.runtime.options ){
+			$options = _extendRuntimeRefOptions( $options, ctx.runtime.options, $model );
+			$options = _extendRuntimeFuncOptions( $options, ctx.runtime.options, {$id,$model,$index,$parent,$siblings}, $functions  );
+		}
+
+		tmpl = tmpl || ctx.template;
+	}
+
+	tmpl = tmpl || $options.defaultTemplate;
+
+	if( !tmpl ){
+		throw("Undefined template for context '" + $context + "' of node '" + $id + "'" );
+	}
+
+	var _data = {
+
+		$id:        $id,
+		$node:      $node,
+		$context:   $context,
+		$model:     $model,
+		$templates: $templates,
+		$functions: $functions,
+		$options:   $options,
+		$parent:    $parent,
+		$siblings:  $siblings,
+		$index:     $index
+
+	};
+
+	renderTemplate( _data, tmpl );
 
 }
 
@@ -186,49 +183,52 @@ var renderBranch = function(data, branchname, range, filter){
         return;
     }
 
-    var ctx = _getContext($node, $context);
+	if( $node.render ) {
 
-	var branch, template, func;
+		var ctx = _getContext($node, $context);
 
-	if( ctx.branchByName && ctx.branchByName[ branchname ] ){
+		var branch, template, func;
 
-		branch = ctx.branchByName[ branchname ];
+		if( ctx.branchByName && ctx.branchByName[ branchname ] ){
 
-		var swallow = (branch.swallow || []).find(_isActive);
+			branch = ctx.branchByName[ branchname ];
 
-		if( swallow ){
-			bx = [swallow];
-			branch = null;
-		}
-		else{
+			var swallow = (branch.swallow || []).find(_isActive);
 
-			var skipTo = (branch.skipTo || []).filter(_isActive);
-
-			if( skipTo.length ){
-				bx = skipTo;
+			if( swallow ){
+				bx = [swallow];
 				branch = null;
 			}
+			else{
+
+				var skipTo = (branch.skipTo || []).filter(_isActive);
+
+				if( skipTo.length ){
+					bx = skipTo;
+					branch = null;
+				}
+			}
+		}
+		else{
+			branch = ctx.branch;
+		}
+
+		if( branch ){
+
+			bx = _filterShow( branch.show, bx );
+
+			if( branch.options ){
+				$options = _extend( $options, branch.options );
+			}
+
+			if( branch.runtime && branch.runtime.options ){
+				$options = _extendRuntimeRefOptions( $options, branch.runtime.options, $model );
+				$options = _extendRuntimeFuncOptions( $options, branch.runtime.options, {$id,$model,$index,$parent,$siblings}, $functions  );
+			}
+
+			template = branch.template;
 		}
 	}
-	else{
-		branch = ctx.branch;
-	}
-
-    if( branch ){
-
-		bx = _filterShow( branch.show, bx );
-
-		if( branch.options ){
-			$options = _extend( $options, branch.options );
-		}
-
-		if( branch.runtime && branch.runtime.options ){
-			$options = _extendRuntimeRefOptions( $options, branch.runtime.options, $model );
-            $options = _extendRuntimeFuncOptions( $options, branch.runtime.options, {$id,$model,$index,$parent,$siblings}, $functions  );
-		}
-
-        template = branch.template;
-    }
 
     bx.forEach( (item, index) => {
 		
