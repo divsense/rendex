@@ -106,6 +106,9 @@ var renderNode = function(data, template){
 	var $functions  = data.$functions;
 
 	var $node = $model.get( $id );
+	if(!$node){
+		throw("Cannot find node with id " + $id + "'" );
+	}
 	$context = $node.context || $context;
 
 	var tmpl = template;
